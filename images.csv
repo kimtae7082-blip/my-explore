@@ -1,0 +1,4 @@
+id,image_url,title,prompt,author,likes,type,created_at
+1,images/001.jpg,Mountain Lake,cinematic mountain lake,artist01,128,image,2026-09-18
+2,images/002.jpg,Futuristic Robot,futuristic humanoid robot,artist02,241,image,2026-09-17
+3,images/003.jpg,AI Video,cinematic sci-fi video,artist03,302,video,2026-09-16

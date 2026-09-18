@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Explore Gallery</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">Explore</div>
+    <nav>
+      <button class="nav-item active">◉ <span>Explore</span></button>
+      <button class="nav-item">✦ <span>Create</span></button>
+      <button class="nav-item">◫ <span>Edit</span></button>
+      <button class="nav-item">▦ <span>Organize</span></button>
+    </nav>
+    <div class="section-title">AESTHETICS</div>
+    <nav>
+      <button class="nav-item">◌ <span>Personalize</span></button>
+      <button class="nav-item">▱ <span>Moodboards</span></button>
+      <button class="nav-item">◈ <span>Style Creator</span></button>
+    </nav>
+    <div class="section-title">COMMUNITY</div>
+    <nav>
+      <button class="nav-item">♡ <span>Likes</span></button>
+      <button class="nav-item">◎ <span>Tasks</span></button>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item">? <span>Help</span></button>
+      <button class="nav-item">☼ <span>Light Mode</span></button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="upload-box">
+        <label class="file-label" for="csvFile">＋</label>
+        <input id="csvFile" type="file" accept=".csv,text/csv" />
+        <div>
+          <strong>CSV로 이미지 목록 불러오기</strong>
+          <span id="fileStatus">images.csv 형식의 파일을 선택하세요</span>
+        </div>
+      </div>
+      <button class="settings" id="settingsBtn" title="설정">☷</button>
+    </header>
+
+    <section class="toolbar">
+      <div class="tabs">
+        <button class="tab active" data-sort="top">Top Day</button>
+        <button class="tab" data-sort="likes">Likes</button>
+        <button class="tab" data-sort="new">Latest</button>
+      </div>
+      <div class="right-tools">
+        <label class="search"><span>⌕</span><input id="search" placeholder="Search prompt, author..." /></label>
+        <button class="filter active" data-type="all">All</button>
+        <button class="filter" data-type="image">Images</button>
+        <button class="filter" data-type="video">Videos</button>
+      </div>
+    </section>
+
+    <div id="empty" class="empty hidden">
+      <h2>이미지를 추가하세요</h2>
+      <p>CSV의 <code>image_url</code> 열에 이미지 URL을 넣고 위에서 CSV를 선택하면 됩니다.</p>
+    </div>
+
+    <section id="gallery" class="gallery" aria-live="polite"></section>
+  </main>
+
+  <dialog id="lightbox" class="lightbox">
+    <button class="close" id="closeLightbox">×</button>
+    <div class="lightbox-media"><img id="lightboxImg" alt="" /></div>
+    <aside class="detail">
+      <div class="detail-author" id="detailAuthor"></div>
+      <h2 id="detailTitle"></h2>
+      <p id="detailPrompt"></p>
+      <div class="meta" id="detailMeta"></div>
+      <button id="copyPrompt" class="primary">프롬프트 복사</button>
+    </aside>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
