@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>전국 날씨 뉴스 앱</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
+
+</head>
+
+
+<body>
+
+<div class="container py-4">
+
+    <!-- 제목 -->
+
+    <div class="hero-card mb-4">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+
+                <h1 class="mb-2">
+                    🌤️ 전국 날씨 뉴스
+                </h1>
+
+                <p class="mb-0">
+                    대한민국 17개 시·도 실시간 날씨 종합 대시보드
+                </p>
+
+            </div>
+
+            <button
+                id="btnRefresh"
+                class="btn btn-light"
+            >
+                🔄 새로고침
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- 로딩 -->
+
+    <div
+        id="loadingSpinner"
+        class="text-center py-5"
+    >
+
+        <div
+            class="spinner-border text-primary"
+            role="status"
+        ></div>
+
+        <p class="mt-2">
+            전국 날씨 데이터를 불러오는 중입니다...
+        </p>
+
+    </div>
+
+
+    <!-- 오류 -->
+
+    <div
+        id="errorMessage"
+        class="alert alert-danger d-none"
+    >
+
+        <strong>
+            데이터 오류
+        </strong>
+
+        <div id="errorText"></div>
+
+    </div>
+
+
+    <!-- 전국 요약 -->
+
+    <section class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h2 class="h5 fw-bold mb-3">
+                🇰🇷 전국 날씨 요약
+            </h2>
+
+            <div
+                id="nationalWeatherSummary"
+                class="row"
+            ></div>
+
+        </div>
+
+    </section>
+
+
+    <!-- 전국 17개 지역 -->
+
+    <section class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h2 class="h5 fw-bold mb-3">
+                🗺️ 전국 17개 시·도 날씨
+            </h2>
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>지역</th>
+                            <th>기온</th>
+                            <th>날씨</th>
+                            <th>습도</th>
+                            <th>풍속</th>
+                            <th>강수량</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody
+                        id="majorRegionsTable"
+                    ></tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- 미세먼지 -->
+
+    <section class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h2 class="h5 fw-bold mb-3">
+                🌫️ 미세먼지
+            </h2>
+
+            <div
+                id="dustStatusContainer"
+                class="row"
+            ></div>
+
+        </div>
+
+    </section>
+
+
+    <!-- 기후변화 -->
+
+    <section class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h2 class="h5 fw-bold mb-3">
+                🌡️ 기후변화 분석
+            </h2>
+
+            <div
+                id="climateChangeContainer"
+            ></div>
+
+        </div>
+
+    </section>
+
+
+    <!-- 특보 -->
+
+    <section class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h2 class="h5 fw-bold mb-3">
+                ⚠️ 기상 이벤트
+            </h2>
+
+            <ul
+                id="warningsList"
+                class="list-group"
+            ></ul>
+
+        </div>
+
+    </section>
+
+
+    <!-- 기상 현상 -->
+
+    <section class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h2 class="h5 fw-bold mb-3">
+                🌧️ 주요 기상 현상
+            </h2>
+
+            <div
+                id="weatherEventsContainer"
+                class="event-container"
+            ></div>
+
+        </div>
+
+    </section>
+
+
+    <!-- 뉴스 -->
+
+    <section class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h2 class="h5 fw-bold mb-3">
+                📰 오늘의 날씨 뉴스
+            </h2>
+
+            <div
+                id="todayNewsContainer"
+            ></div>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<script src="/js/main.js"></script>
+
+</body>
+
+</html>
