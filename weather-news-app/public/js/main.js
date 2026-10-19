@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
     loadDashboardData();
+    
 });
 
 
@@ -63,9 +64,14 @@ async function loadDashboardData() {
             console.error('뉴스 조회 실패:', error);
             renderTodayNews([]);
         }
-
+    
         renderDustStatus();
         renderClimateChange();
+        
+        await loadAirQuality();
+        
+        // 기후변화 분석 추가
+        await loadClimateAnalysis(1);
 
     } catch (error) {
         console.error('날씨 조회 실패:', error);
@@ -235,70 +241,166 @@ function renderNationalWeather(
 =========================================================
 */
 
-function renderMajorRegions(
-    observations
-) {
+let selectedWeatherRegionId = null;
 
-    const tbody =
-        document.getElementById(
-            'majorRegionsTable'
+function renderMajorRegions(observations) {
+    const container =
+        document.getElementById('majorRegionsTable');
+
+    if (!container) return;
+
+    // 기존 데이터 보관
+    window.currentWeatherObservations = observations;
+
+    // 테이블 내부에 지역 선택 버튼과 상세정보 영역 생성
+    container.innerHTML = `
+        <tr>
+            <td colspan="6">
+                <div id="weatherRegionButtons"
+                     class="d-flex flex-wrap gap-2 mb-3">
+                </div>
+                <div id="selectedWeatherDetail"></div>
+            </td>
+        </tr>
+    `;
+
+    const buttonContainer =
+        document.getElementById('weatherRegionButtons');
+
+    observations.forEach(region => {
+        const button = document.createElement('button');
+
+        button.type = 'button';
+        button.className = 'btn btn-outline-primary btn-sm';
+        button.textContent = region.region_name;
+
+        button.addEventListener('click', () => {
+            showSelectedWeather(region.region_id);
+        });
+
+        buttonContainer.appendChild(button);
+    });
+
+    const initialRegion = observations.find(
+        r => String(r.region_id) === String(selectedWeatherRegionId)
+    ) || observations[0];
+
+    if (initialRegion) {
+        showSelectedWeather(initialRegion.region_id);
+    }
+}
+
+function showSelectedWeather(regionId) {
+    const observations =
+        window.currentWeatherObservations || [];
+
+    const region = observations.find(
+        item => String(item.region_id) === String(regionId)
+    );
+
+    if (!region) return;
+
+    selectedWeatherRegionId = regionId;
+
+    const detail =
+        document.getElementById('selectedWeatherDetail');
+
+    if (!detail) return;
+
+    document.querySelectorAll('#weatherRegionButtons button')
+        .forEach((button, index) => {
+            const selected =
+                String(observations[index].region_id) === String(regionId);
+
+            button.className = selected
+                ? 'btn btn-primary btn-sm'
+                : 'btn btn-outline-primary btn-sm';
+        });
+
+    // 기존 미세먼지 데이터와 지역 ID로 연결
+    const dust = (typeof airQualityData !== 'undefined'
+        ? airQualityData : []).find(
+            item => String(item.region_id) === String(regionId)
         );
 
-    tbody.innerHTML = '';
+    detail.innerHTML = `
+        <div class="card shadow-sm p-3">
+            <h5 id="weatherDetailRegion"></h5>
 
+            <div class="row g-3 mt-2">
+                <div class="col-md-4">
+                    <div class="border rounded p-3">
+                        <h6>현재 기온</h6>
+                        <h3 id="weatherDetailTemp"></h3>
+                    </div>
+                </div>
 
-    if (
-        !observations ||
-        observations.length === 0
-    ) {
+                <div class="col-md-4">
+                    <div class="border rounded p-3">
+                        <h6>습도</h6>
+                        <h3 id="weatherDetailHumidity"></h3>
+                    </div>
+                </div>
 
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6"
-                    class="text-center text-muted">
-                    관측 데이터가 없습니다.
-                </td>
-            </tr>
-        `;
+                <div class="col-md-4">
+                    <div class="border rounded p-3">
+                        <h6>풍속</h6>
+                        <h3 id="weatherDetailWind"></h3>
+                    </div>
+                </div>
 
-        return;
-    }
+                <div class="col-md-4">
+                    <div class="border rounded p-3">
+                        <h6>강수량</h6>
+                        <h3 id="weatherDetailRain"></h3>
+                    </div>
+                </div>
 
+                <div class="col-md-4">
+                    <div class="border rounded p-3">
+                        <h6>미세먼지 PM10</h6>
+                        <h3 id="weatherDetailPm10"></h3>
+                        <strong id="weatherDetailPm10Grade"></strong>
+                    </div>
+                </div>
 
-    observations.forEach(obs => {
+                <div class="col-md-4">
+                    <div class="border rounded p-3">
+                        <h6>초미세먼지 PM2.5</h6>
+                        <h3 id="weatherDetailPm25"></h3>
+                        <strong id="weatherDetailPm25Grade"></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
 
-        const row = document.createElement('tr');
+    document.getElementById('weatherDetailRegion')
+        .textContent = region.region_name;
 
-        row.innerHTML = `
+    document.getElementById('weatherDetailTemp')
+        .textContent = `${region.temperature ?? '-'} ℃`;
 
-            <td class="fw-bold">
-                ${obs.region_name}
-            </td>
+    document.getElementById('weatherDetailHumidity')
+        .textContent = `${region.humidity ?? '-'} %`;
 
-            <td>
-                ${obs.temperature}℃
-            </td>
+    document.getElementById('weatherDetailWind')
+        .textContent = `${region.wind_speed ?? '-'} km/h`;
 
-            <td>
-                ${obs.weather_status}
-            </td>
+    document.getElementById('weatherDetailRain')
+        .textContent = `${region.precipitation ?? '-'} mm`;
 
-            <td>
-                ${obs.humidity}%
-            </td>
+    document.getElementById('weatherDetailPm10')
+        .textContent = `${dust?.pm10 ?? '-'} ㎍/㎥`;
 
-            <td>
-                ${obs.wind_speed} m/s
-            </td>
+    document.getElementById('weatherDetailPm25')
+        .textContent = `${dust?.pm25 ?? '-'} ㎍/㎥`;
 
-            <td>
-                ${obs.precipitation} mm
-            </td>
+    document.getElementById('weatherDetailPm10Grade')
+        .textContent = dust?.pm10_grade ?? '정보 없음';
 
-        `;
-
-        tbody.appendChild(row);
-    });
+    document.getElementById('weatherDetailPm25Grade')
+        .textContent = dust?.pm25_grade ?? '정보 없음';
 }
 
 
@@ -653,4 +755,291 @@ function hideError() {
     errorBox.classList.add(
         'd-none'
     );
+}
+
+let airQualityData = [];
+
+// 미세먼지 API에서 전국 데이터 가져오기
+async function loadAirQuality() {
+    const response = await fetch('/api/air-quality');
+
+    if (!response.ok) {
+        throw new Error('미세먼지 API 연결 실패');
+    }
+
+    const result = await response.json();
+
+    if (!result.success) {
+        throw new Error('미세먼지 조회 실패');
+    }
+
+    airQualityData = result.data;
+
+    renderAirQualitySelector();
+}
+
+// 지역 선택 버튼 만들기
+function renderAirQualitySelector() {
+    const container =
+        document.getElementById('dustStatusContainer');
+
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="mb-3">
+            <h5>지역별 미세먼지 정보</h5>
+            <div id="regionButtons"
+                 class="d-flex flex-wrap gap-2"></div>
+        </div>
+
+        <div id="selectedAirQuality"></div>
+    `;
+
+    const buttonContainer =
+        document.getElementById('regionButtons');
+
+    airQualityData.forEach(region => {
+        const button = document.createElement('button');
+
+        button.type = 'button';
+        button.className =
+            'btn btn-outline-primary btn-sm';
+
+        button.textContent = region.region_name;
+
+        button.addEventListener('click', () => {
+            showSelectedAirQuality(region.region_id);
+        });
+
+        buttonContainer.appendChild(button);
+    });
+
+    // 처음 화면에 서울 표시
+    const initialRegion =
+        airQualityData.find(r => r.region_name.includes('서울'))
+        || airQualityData[0];
+
+    if (initialRegion) {
+        showSelectedAirQuality(initialRegion.region_id);
+    }
+}
+
+// 선택한 지역의 미세먼지 표시
+function showSelectedAirQuality(regionId) {
+    const region = airQualityData.find(
+        item => String(item.region_id) === String(regionId)
+    );
+
+    if (!region) return;
+
+    const container =
+        document.getElementById('selectedAirQuality');
+
+    if (!container) return;
+
+    // 버튼 선택 상태 표시
+    document.querySelectorAll('#regionButtons button')
+        .forEach((button, index) => {
+            const selected =
+                String(airQualityData[index].region_id)
+                === String(regionId);
+
+            button.className = selected
+                ? 'btn btn-primary btn-sm'
+                : 'btn btn-outline-primary btn-sm';
+        });
+
+    // API 조회 실패한 지역 처리
+    if (region.error) {
+        container.textContent =
+            `${region.region_name}: 미세먼지 정보를 가져올 수 없습니다.`;
+        return;
+    }
+
+    const getGradeColor = grade => {
+        switch (grade) {
+            case '좋음': return 'text-primary';
+            case '보통': return 'text-success';
+            case '나쁨': return 'text-warning';
+            case '매우 나쁨': return 'text-danger';
+            default: return 'text-secondary';
+        }
+    };
+
+    // 안전하게 텍스트로 삽입
+    container.innerHTML = `
+        <div class="card shadow-sm p-3">
+            <h5 id="dustRegionName"></h5>
+
+            <div class="row g-3 mt-1">
+                <div class="col-md-6">
+                    <div class="border rounded p-3">
+                        <h6>미세먼지 (PM10)</h6>
+                        <h3 id="pm10Value"></h3>
+                        <strong id="pm10Grade"
+                            class="${getGradeColor(region.pm10_grade)}">
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3">
+                        <h6>초미세먼지 (PM2.5)</h6>
+                        <h3 id="pm25Value"></h3>
+                        <strong id="pm25Grade"
+                            class="${getGradeColor(region.pm25_grade)}">
+                        </strong>
+                    </div>
+                </div>
+            </div>
+
+            <small id="dustObservedAt"
+                class="text-muted mt-3"></small>
+        </div>
+    `;
+
+    document.getElementById('dustRegionName')
+        .textContent = region.region_name;
+
+    document.getElementById('pm10Value')
+        .textContent = `${region.pm10 ?? '-'} ㎍/㎥`;
+
+    document.getElementById('pm25Value')
+        .textContent = `${region.pm25 ?? '-'} ㎍/㎥`;
+
+    document.getElementById('pm10Grade')
+        .textContent = region.pm10_grade ?? '정보 없음';
+
+    document.getElementById('pm25Grade')
+        .textContent = region.pm25_grade ?? '정보 없음';
+
+    document.getElementById('dustObservedAt')
+        .textContent =
+            `데이터 기준 시각: ${region.observed_at ?? '정보 없음'}`;
+}
+
+let selectedClimateRegionId = 1;
+
+async function loadClimateAnalysis(regionId = 1) {
+    const container =
+        document.getElementById('climateChangeContainer');
+
+    if (!container) return;
+
+    selectedClimateRegionId = regionId;
+    container.textContent = '기후변화 데이터 분석 중...';
+
+    try {
+        const response = await fetch(
+            `/api/climate/analysis/${regionId}`
+        );
+
+        if (!response.ok) {
+            throw new Error('기후 분석 API 오류');
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error('기후 분석 실패');
+        }
+
+        renderClimateAnalysis(result.data);
+
+    } catch (error) {
+        console.error(error);
+        container.textContent =
+            '기후변화 분석 데이터를 불러올 수 없습니다.';
+    }
+}
+
+function renderClimateAnalysis(data) {
+    const container =
+        document.getElementById('climateChangeContainer');
+
+    const diff = data.comparison;
+
+    container.innerHTML = `
+        <div class="card p-3 shadow-sm">
+            <h5 id="climateRegionTitle"></h5>
+            <p class="text-muted" id="climatePeriod"></p>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="border rounded p-3">
+                        <h6>평균기온 차이</h6>
+                        <h3 id="climateTempDiff"></h3>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="border rounded p-3">
+                        <h6>연간 강수량 차이</h6>
+                        <h3 id="climateRainDiff"></h3>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="border rounded p-3">
+                        <h6>폭염일수 차이</h6>
+                        <h3 id="climateHeatDiff"></h3>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="mt-4">연도별 평균기온</h6>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>연도</th>
+                            <th>평균기온</th>
+                            <th>강수량</th>
+                            <th>폭염일수</th>
+                        </tr>
+                    </thead>
+                    <tbody id="climateYearTable"></tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('climateRegionTitle')
+        .textContent = `${data.region} 기후변화 분석`;
+
+    document.getElementById('climatePeriod')
+        .textContent = `분석 기간: ${data.period}`;
+
+    document.getElementById('climateTempDiff')
+        .textContent =
+            `${diff.temperatureDifference ?? '-'} ℃`;
+
+    document.getElementById('climateRainDiff')
+        .textContent =
+            `${diff.rainfallDifference ?? '-'} mm`;
+
+    document.getElementById('climateHeatDiff')
+        .textContent =
+            `${diff.heatwaveDaysDifference ?? '-'} 일`;
+
+    const tbody = document.getElementById('climateYearTable');
+
+    data.years.forEach(year => {
+        const row = document.createElement('tr');
+
+        [
+            year.year,
+            year.avgTemperature == null
+                ? '-'
+                : `${year.avgTemperature} ℃`,
+            `${year.rainfall} mm`,
+            `${year.heatwaveDays} 일`
+        ].forEach(value => {
+            const cell = document.createElement('td');
+            cell.textContent = value;
+            row.appendChild(cell);
+        });
+
+        tbody.appendChild(row);
+    });
 }
