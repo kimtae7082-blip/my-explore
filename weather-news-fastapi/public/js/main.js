@@ -1,3 +1,4 @@
+// HTML 요소를 모두 읽은 뒤 버튼을 연결하고 최초 데이터를 조회합니다.
 document.addEventListener('DOMContentLoaded', () => {
 
     const refreshButton =
@@ -19,6 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
 =========================================================
 */
 
+// 조회 순서: 저장된 관측 → 이벤트 → 뉴스 → 외부 대기질 → 기후 분석입니다.
+// 새로고침 버튼은 조회만 하며 날씨 수집·이벤트 분석·뉴스 생성 POST는 호출하지 않습니다.
 async function loadDashboardData() {
     showLoading(true);
     hideError();
@@ -90,6 +93,7 @@ API 공통 함수
 =========================================================
 */
 
+// HTTP 상태와 JSON의 success를 모두 확인하는 공통 요청 함수입니다.
 async function fetchAPI(url, options = {}) {
 
     const response =
@@ -123,6 +127,7 @@ async function fetchAPI(url, options = {}) {
 =========================================================
 */
 
+// 조회된 대표 지점들의 단순 평균입니다. 면적·인구 가중 전국 평균은 아닙니다.
 function renderNationalWeather(
     observations
 ) {
@@ -244,6 +249,7 @@ function renderNationalWeather(
 
 let selectedWeatherRegionId = null;
 
+// 최신 관측을 보관해 두고 지역 버튼을 누를 때 해당 지역의 상세값을 찾습니다.
 function renderMajorRegions(observations) {
     const container =
         document.getElementById('majorRegionsTable');
@@ -291,6 +297,8 @@ function renderMajorRegions(observations) {
     }
 }
 
+// DB 관측과 외부 대기질을 region_id로 연결합니다.
+// String으로 비교해 숫자 1과 문자열 '1'의 자료형 차이를 처리합니다.
 function showSelectedWeather(regionId) {
     const observations =
         window.currentWeatherObservations || [];
@@ -411,6 +419,7 @@ function showSelectedWeather(regionId) {
 =========================================================
 */
 
+// 화면의 '경보'는 자체 규칙의 결과이며 공식 기상특보 발표를 뜻하지 않습니다.
 function renderWarnings(events) {
 
     const list =
@@ -542,6 +551,7 @@ function renderWeatherEvents(events) {
 =========================================================
 */
 
+// 이전 안내용 함수입니다. 현재 대시보드에서는 loadAirQuality 경로를 사용합니다.
 function renderDustStatus() {
 
     const container =
@@ -581,6 +591,8 @@ function renderDustStatus() {
 =========================================================
 */
 
+// 뉴스는 최대 5개만 표시합니다. 날짜 표시에는 브라우저의 시간대가 반영됩니다.
+// 기존 innerHTML에 넣는 기사 문자열은 신뢰된 입력이라는 전제입니다. 외부 입력은 별도 검수가 필요합니다.
 function renderTodayNews(newsList) {
 
     const container =
@@ -655,6 +667,7 @@ function renderTodayNews(newsList) {
 =========================================================
 */
 
+// 이전 안내용 함수입니다. 현재 기후 수치는 loadClimateAnalysis 경로에서 받습니다.
 function renderClimateChange() {
 
     const container =
@@ -761,6 +774,7 @@ function hideError() {
 let airQualityData = [];
 
 // 미세먼지 API에서 전국 데이터 가져오기
+// 대기질 조회가 끝나야 지역별 날씨 상세에서도 미세먼지를 함께 표시할 수 있습니다.
 async function loadAirQuality() {
     const response = await fetch('/api/air-quality');
 
@@ -826,6 +840,7 @@ function renderAirQualitySelector() {
 }
 
 // 선택한 지역의 미세먼지 표시
+// 지역별 error를 먼저 확인합니다. 결측 수치는 ??로 '-'를 표시하므로 실제 0은 유지합니다.
 function showSelectedAirQuality(regionId) {
     const region = airQualityData.find(
         item => String(item.region_id) === String(regionId)
@@ -921,6 +936,7 @@ function showSelectedAirQuality(regionId) {
 
 let selectedClimateRegionId = 1;
 
+// 지역을 바꿀 때 과거 자료를 다시 요청합니다. 외부 API 응답에 따라 시간이 걸립니다.
 async function loadClimateAnalysis(regionId = 1) {
     const container =
         document.getElementById('climateAnalysisResult') || document.getElementById('climateChangeContainer');
@@ -954,6 +970,7 @@ async function loadClimateAnalysis(regionId = 1) {
     }
 }
 
+// 연도별 집계와 첫해·마지막 해 차이를 표시합니다. 장기 추세 검정 결과가 아닙니다.
 function renderClimateAnalysis(data) {
     const container =
         document.getElementById('climateAnalysisResult') || document.getElementById('climateChangeContainer');
@@ -1046,6 +1063,7 @@ function renderClimateAnalysis(data) {
 }
 
 // FastAPI 기후 지역 선택 기능
+// 선택 가능한 지역은 DB 목록에서 가져옵니다. 수집 대상 좌표와 city_code가 일치해야 합니다.
 async function initClimateRegionSelector() {
     const container = document.getElementById('climateChangeContainer');
     if (!container) return;
@@ -1066,3 +1084,4 @@ async function initClimateRegionSelector() {
     }
     if(buttons.firstChild) buttons.firstChild.click();
 }
+
